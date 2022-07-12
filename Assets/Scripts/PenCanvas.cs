@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 public class PenCanvas : MonoBehaviour, IPointerClickHandler
 {
     public Action OnPenCanvasleftClickEvent;
-
+    public Action OnPenCanvasRightClickEvent;
     public void OnPointerClick(PointerEventData eventData)
     {
         //Left Click
@@ -15,6 +15,10 @@ public class PenCanvas : MonoBehaviour, IPointerClickHandler
         {
             OnPenCanvasleftClickEvent?.Invoke();
         }
-
+        //Right Click
+        if (eventData.pointerId == -2)
+        {
+            OnPenCanvasRightClickEvent?.Invoke();
+        }
     }
 }

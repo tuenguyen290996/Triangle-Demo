@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,50 +11,63 @@ public class GameManager : MonoBehaviour
 
     [Header("Dots")]
     [SerializeField] private GameObject dotPrefab;
-    [SerializeField] Transform dotsParent;
+    [SerializeField] Transform dotParent;
 
     [Header("Lines")]
     [SerializeField] private GameObject linePrefab;
-    [SerializeField] Transform linesParent;
+    [SerializeField] Transform lineParent;
 
     [Header("Info")]  
     [SerializeField] private Text areaText;
 
+    public Material mat;
+
     int dotId;
     private Vector2 currentDot;
+    private LineController currentLine;
     private int clickCount;
     private LineRenderer lineRend;
     private float semiPerimeter, area;
     private Mesh mesh;
-    private Vector3[] vertices;
+    Vector3[] vertices;
 
-    Dictionary<int, DotController> dotDic;
-    
+    Dictionary<int, DotController> dotDic = new Dictionary<int, DotController>();
 
-
-
+    private void Awake()
+    {
+        lineRend = GetComponent<LineRenderer>();
+    }
     // Start is called before the first frame update
     void Start()
     {
-        mesh = new Mesh();
-        vertices = new Vector3[3];
         lineRend = GetComponent<LineRenderer>();
         lineRend.positionCount = 0;
         clickCount = 0;
         areaText.text = "Area = " + area;
-
+        mesh = new Mesh();
+        vertices = new Vector3[3];
         // Event khi click vao PenCanvas
         penCanvas.OnPenCanvasleftClickEvent += AddDot;
+        penCanvas.OnPenCanvasRightClickEvent += EndCurrentLine;
+    }
+
+    private void EndCurrentLine()
+    {
+        //lineRend.positionCount = 0;
     }
 
     private void AddDot()
     {
-        DotController dot = Instantiate(dotPrefab, GetMousePosition(), Quaternion.identity, dotsParent).GetComponent<DotController>();
+        DotController dot = Instantiate(dotPrefab, GetMousePosition(), Quaternion.identity, dotParent).GetComponent<DotController>();
         dot.OnDragEvent += MoveDot;
-        dot.OnRightClickEvent += SelectDotAndDrawLine;        
-        dotDic = new Dictionary<int, DotController>();
+        dot.OnRightClickEvent += SelectDotAndDrawLine;
+        
         dotId++;
         dotDic.Add(dotId, dot);
+        //foreach (KeyValuePair<int, DotController> item in dotDic)
+        //{
+        //    Debug.Log(item.Key + "\t" + item.Value.transform.position);
+        //}
     }
 
     private void SelectDotAndDrawLine(DotController dot)
@@ -62,6 +76,11 @@ public class GameManager : MonoBehaviour
         currentDot = dot.transform.position;
         lineRend.positionCount += 1;
         clickCount += 1;
+
+        //if (currentLine == null)
+        //{
+        //    currentLine = Instantiate(lineParent, Vector3.zero, Quaternion.identity, lineParent).GetComponent<LineController>();
+        //}
 
 
 
@@ -105,6 +124,8 @@ public class GameManager : MonoBehaviour
                 mesh.vertices = vertices;
 
                 mesh.triangles = new int[] { 0, 1, 2 };
+
+                GetComponent<MeshRenderer>().material = mat;
 
                 GetComponent<MeshFilter>().mesh = mesh;
 
